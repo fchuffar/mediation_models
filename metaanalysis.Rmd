@@ -1,0 +1,97 @@
+---
+title: "`meth3D`"
+subtitle: "Simulation of mediation scheme"
+author: "Florent Chuffart, Daniel Jost"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
+```
+
+# Data
+
+```{r}
+infos_filenames = list.files(".", "infos")
+infos = data.frame(do.call(rbind, do.call(data.frame, strsplit(infos_filenames, "_"))))[,c(2,3,5,6)]
+rownames(infos) = substr(infos_filenames, 7, nchar(infos_filenames)-4)
+colnames(infos) = c("ncell", "i", "gamma1", "gamma2")
+infos
+
+infos2 = lapply(rownames(infos), function(suffix){
+  infos_filename = paste0("infos_", suffix, ".rds")
+  # print(infos_filename)
+  infos = try(readRDS(infos_filename))
+  if (class(infos)=="try-error") {
+    NULL
+  } else {
+    # infos$ncell = ncell
+    # infos$gamma1 = gamma1
+    # infos$gamma2 = gamma2
+    # infos$i = i
+    fitmed_filename = paste0("fitmed_", suffix, ".rds")
+    print(fitmed_filename)
+    fitmed = readRDS(fitmed_filename)
+    if (is.null(fitmed)) {
+      infos$acme          = NA #x$d1.ci, x$d1.p)       #x$z0.ci, x$z0.p))
+      infos$ade           = NA  #x$z0.ci, x$z0.p))
+      infos$total_effect  = NA  #x$tau.ci, x$tau.p))
+      infos$prop_mediated = NA  #x$n0.ci, x$n0.p))
+      as.data.frame(infos)        
+    } else {
+      infos$acme          = fitmed$d1       #x$d1.ci, x$d1.p)       #x$z0.ci, x$z0.p))
+      infos$ade           = fitmed$z0       #x$z0.ci, x$z0.p))
+      infos$total_effect  = fitmed$tau.coef #x$tau.ci, x$tau.p))
+      infos$prop_mediated = fitmed$n0       #x$n0.ci, x$n0.p))
+      as.data.frame(infos)        
+    }
+  }
+})
+infos2 = do.call(rbind, infos2)
+rownames(infos2) = rownames(infos)
+infos2
+infos = cbind(infos, infos2)
+```
+
+# Stats
+
+```{r echo=FALSE}
+infos$col = as.factor(paste0(infos$gamma1, "_", infos$gamma2))
+layout(matrix(1:8, 2, byrow=TRUE), respect=TRUE)
+for (Y in c("simuexectime", "fitmedexectime", "effect1", "effect2", "effect3", "acme", "ade", "total_effect", "prop_mediated")) {
+  for (X in c("ncell", "gamma1", "gamma2", "i")) {
+    frm = formula(paste0(Y, "~", X))
+    plot(frm, infos, main=frm, col=as.numeric(infos$col))
+    if (X=="ncell") {legend("topleft", levels(infos$col), pch=1, col=1:length(levels(infos$col)))}
+  }
+}  
+```
+
+
+
+# MEdiation
+
+```{r echo=FALSE,  fig.width=9, fig.height=9}
+infos$grp = infos$col
+layout(matrix(1:4, 2, byrow=TRUE), respect=TRUE)
+for (Y in c("acme", "ade", "total_effect", "prop_mediated")) {
+  for (X in c("grp")) {
+    frm = formula(paste0(Y, "~", X))
+    plot(frm, infos, main=frm, col=1:length(levels(infos$grp)))
+  }
+}  
+```
+
+# Session Information
+
+```{r}
+sessionInfo()
+```

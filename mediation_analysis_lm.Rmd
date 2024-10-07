@@ -1,0 +1,325 @@
+---
+title: "`meth3D`"
+subtitle: "Simulation of mediation scheme"
+author: "Florent Chuffart, Daniel Jost"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
+```
+
+
+# Simulation
+
+<>## Params {-}
+
+```{r}
+source("params.R")
+print(suffix)
+simusres_filename = paste0("sim_res_", suffix, ".txt")
+simu0res_filename = paste0("sim_res_seed0", "_", paste0(strsplit(suffix, "_")[[1]][-1], collapse="_")
+, ".txt")
+infos = list()
+```
+
+## Launch simulator  {-}
+
+```{r simu}
+simuexectime_filename = paste0("exectime_", suffix, ".rds")
+if (!file.exists(simusres_filename)) {
+  params_filename = paste0("params_", suffix, ".txt")
+  cat(paste0("ncell=", ncell, "     \n"), file=params_filename)
+  cat(paste0("i = ", i, "           \n"), file=params_filename, append=TRUE)
+  cat(paste0("sij = ", sij, "       \n"), file=params_filename, append=TRUE)
+  cat(paste0("gamma1 = ", gamma1, " \n"), file=params_filename, append=TRUE)
+  cat(paste0("gamma2 = ", gamma2, " \n"), file=params_filename, append=TRUE)
+  cat(paste0("d = ", d, "           \n"), file=params_filename, append=TRUE)
+  cat(paste0("lamb = ", lamb, "     \n"), file=params_filename, append=TRUE)
+  cat(paste0("f = ", f, "           \n"), file=params_filename, append=TRUE)
+  cat(paste0("seed = ", seed, "           \n"), file=params_filename, append=TRUE)
+  cmd = "python"
+  args = paste("simulator.py", params_filename)
+  print(paste(cmd, args))
+  start_time = Sys.time()
+  system2(cmd, args)
+  stop_time = Sys.time()
+  exectime = round(difftime(stop_time, start_time, units="mins"),1)
+  saveRDS(exectime, simuexectime_filename)
+}
+infos$simuexectime = readRDS(simuexectime_filename)
+
+if (!file.exists(simusres_filename)) {stop(paste0("no file ", simusres_filename, " produced."))}
+```
+
+## Simulation execution stastics
+
+  - execution time time
+  - nb event per simulation
+
+# Analysis
+
+```{r 1stsimu, eval=FALSE}
+if (!file.exists(simu0res_filename)) {stop(paste0("no file ", simu0res_filename, " produced."))}
+df = read.table(simu0res_filename)
+head(df)
+dim(df)
+infos$nbeventsimu0=nrow(df)
+
+layout(matrix(1:4,2))
+plot(df[,1], df[,2], main="ma/ca")
+points(df[,1], df[,4], col=2)
+legend("topleft", c("ma", "ca"), col=1:2, pch=1)
+plot(df[,1], df[,3], main="mb/cb")
+points(df[,1], df[,5], col=2)
+legend("topleft", c("mb", "cb"), col=1:2, pch=1)
+
+plot(df[,1], df[,6], main="nrna/pcontact")
+points(df[,1], df[,7], col=2)
+legend("topleft", c("nrna", "pcontact"), col=1:2, pch=1)
+plot(df[,1], df[,6], main="nrna")
+plot(df[,1], df[,7], main="pcontact")
+
+# ma
+# mb
+# ca
+# cb
+# nrna
+# pcontact
+
+```
+
+
+```{r data}
+if (!exists("mread.table")) {mread.table=memoise::memoise(read.table)}
+
+df = mread.table(simusres_filename)
+                 
+X = df[,3]
+
+M = df[,6]
+
+Y = df[,5]
+
+DNAm = df[,1]
+
+data = data.frame(X, M, Y, DNAm)
+```
+
+# Mediation Analysis
+
+## Step 0: DNA methylation effect on CTCF binding
+
+$$ CTCFb \sim DNAm $$
+
+
+```{r model0}
+ws = c(1000, 5000, 10000, 50000, 100000)
+layout(matrix(1:2, 1), respect=TRUE)
+col=1
+for (w in ws) {
+  col=col+1
+  res = sapply(1:(nrow(data)/w), function(i) {
+    beg = (((i-1)*w)+1)
+    end = beg + w - 1 
+    idx = beg:end
+#    print(range(idx))
+    fit0 = lm(X~DNAm, data=data[idx,])
+    # fit0 = glm(X~DNAm, data=data[idx,], family = binomial(logit))
+    fit0$coefficients[[2]]
+  })
+  if (w==1000) {
+    plot(0,0, col=0, xlim=c(1, nrow(data)), ylim=range(res), 
+      main="X~DNAm (sub-sampled)", ylab="DNAm effect on X", xlab="cell id"
+    ) 
+  }
+  x = ((1:(nrow(data)/w)-1)*w)+1
+  x = c(x, nrow(data))
+  res = c(res, rev(res)[1])
+  lines(x, res, col=adjustcolor(col, alpha.f=.5), lwd=(log(w)/log(1000))^3, type="s")
+}
+legend("topright", paste0("", ws), col=2:col, lty=1, lwd=(log(ws)/log(1000))^3, title="#cells")
+
+
+fit0 = lm(X~DNAm, data=data)
+# fit0 = glm(X~DNAm, data=data, family = binomial(logit))
+summary(fit0)
+abline(h=fit0$coef[[2]], lty=3)
+plot(as.factor(DNAm), as.factor(X), main="X~DNAm", xlab="DNAmX", ylab="X")
+
+infos$effect0 = fit0$coefficients[[2]]
+
+```
+
+
+
+## Step 1: Total effect (X effect on Y)
+
+$$Y \sim X$$
+
+```{r model1}
+layout(matrix(1:2, 1), respect=TRUE)
+col=1
+for (w in ws) {
+  col=col+1
+  res = sapply(1:(nrow(data)/w), function(i) {
+    beg = (((i-1)*w)+1)
+    end = beg + w - 1 
+    idx = beg:end
+#    print(range(idx))
+    fit =lm(Y ~ X, data=data[idx, ])
+    # fit = glm(Y ~ X, data=data[idx,], family=poisson(link="log"))
+    fit$coefficients[[2]]
+  })
+  if (w==1000) {
+    plot(0,0, col=0, xlim=c(1, nrow(data)), ylim=range(res), 
+      main="Y~X (sub-sampled)", ylab="total effect", xlab="cell id"
+    ) 
+  }
+  x = ((1:(nrow(data)/w)-1)*w)+1
+  x = c(x, nrow(data))
+  res = c(res, rev(res)[1])
+  lines(x, res, col=adjustcolor(col, alpha.f=.5), lwd=(log(w)/log(1000))^3, type="s")
+}
+legend("topright", paste0("", ws), col=2:col, lty=1, lwd=(log(ws)/log(1000))^3, title="#cells")
+
+
+fit = lm(Y ~ X, data=data)
+# fit = glm(Y ~ X, data=data, family=poisson(link="log"))
+summary(fit)
+abline(h=fit$coef[[2]], lty=3)
+plot(as.factor(X), as.factor(Y), main="Y~X", xlab="X", ylab="Y")
+
+infos$effect1 = fit$coefficients[[2]]
+
+```
+
+## Step 2: X effect on M
+
+$$M \sim X$$
+
+
+```{r model2}
+layout(matrix(1:2, 1), respect=TRUE)
+col=1
+for (w in ws) {
+  col=col+1
+  res = sapply(1:(nrow(data)/w), function(i) {
+    beg = (((i-1)*w)+1)
+    end = beg + w - 1 
+    idx = beg:end
+#    print(range(idx))
+    fita = lm(M~X, data=data[idx,])
+    # fita = glm(M~X, data=data[idx,], family = binomial(logit))
+    fita$coefficients[[2]]
+  })
+  if (w==1000) {
+    plot(0,0, col=0, xlim=c(1, nrow(data)), ylim=range(res), 
+      main="M~X (sub-sampled)", ylab="X effect on M", xlab="cell id"
+    ) 
+  }
+  x = ((1:(nrow(data)/w)-1)*w)+1
+  x = c(x, nrow(data))
+  res = c(res, rev(res)[1])
+  lines(x, res, col=adjustcolor(col, alpha.f=.5), lwd=(log(w)/log(1000))^3, type="s")
+}
+legend("topright", paste0("", ws), col=2:col, lty=1, lwd=(log(ws)/log(1000))^3, title="#cells")
+
+
+fita =lm(M ~ X, data=data)
+# fita = glm(M~X, data=data, family = binomial(logit))
+summary(fita)
+abline(h=fita$coef[[2]], lty=3)
+plot(as.factor(X), as.factor(M), main="M~X", xlab="X", ylab="M")
+
+infos$effect2 = fita$coefficients[[2]]
+
+```
+
+## Step 3 : M effect on Y with X as a cofactor
+
+$$Y \sim M + X$$
+
+```{r model3}
+layout(matrix(1:2, 1), respect=TRUE)
+col=1
+for (w in ws) {
+  col=col+1
+  res = sapply(1:(nrow(data)/w), function(i) {
+    beg = (((i-1)*w)+1)
+    end = beg + w - 1 
+    idx = beg:end
+#    print(range(idx))
+    fitb = lm(Y ~ M + X, data=data[idx,])
+    # fitb = glm(Y ~ M + X, data=data[idx,], family=poisson(link="log"))
+    fitb$coefficients[[2]]
+  })
+  if (w==1000) {
+    plot(0,0, col=0, xlim=c(1, nrow(data)), ylim=range(res), 
+      main="Y ~ M + X (sub-sampled)", ylab="M effect on Y with X as a cofactor", xlab="cell id"
+    ) 
+  }
+  x = ((1:(nrow(data)/w)-1)*w)+1
+  x = c(x, nrow(data))
+  res = c(res, rev(res)[1])
+  lines(x, res, col=adjustcolor(col, alpha.f=.5), lwd=(log(w)/log(1000))^3, type="s")
+}
+legend("topright", paste0("", ws), col=2:col, lty=1, lwd=(log(ws)/log(1000))^3, title="#cells")
+
+
+fitb = lm(Y ~ M + X, data=data)
+# fitb = glm(Y ~ M + X, data=data, family=poisson(link="log"))
+summary(fitb)
+abline(h=fitb$coef[[2]], lty=3)
+plot(as.factor(M), as.factor(Y), main="Y~M+X", xlab="M", ylab="Y")
+
+
+
+infos$effect3 = fitb$coefficients[[2]]
+
+
+```
+
+## `mediation` package
+
+```{r mediation}
+ library(mediation)
+ fitmed_filename = paste0("fitmed_", suffix, ".rds")
+if (!file.exists(fitmed_filename)) {
+  #with bootstrap
+  start_time = Sys.time()
+  fitmed = try(mediate(fita, fitb, treat = "X", mediator = "M", boot = TRUE))
+  saveRDS(fitmed, fitmed_filename)
+  stop_time = Sys.time()
+  fitmedexectime = round(difftime(stop_time, start_time, units="mins"),1)
+  saveRDS(fitmedexectime, paste0("fitmedexectime_", suffix, ".rds"))
+}
+fitmed = readRDS(fitmed_filename)
+if (class(fitmed)=="try-error") {
+    saveRDS(NULL, fitmed_filename)
+    infos$fitmedexectime = NA
+  } else {
+    infos$fitmedexectime = readRDS(paste0("fitmedexectime_", suffix, ".rds"))
+    summary(fitmed)
+    plot(fitmed)
+    saveRDS(fitmed, fitmed_filename)
+}
+
+```
+
+
+
+# Session Information
+
+```{r}
+saveRDS(infos, paste0("infos_", suffix, ".rds"))
+sessionInfo()
+```
