@@ -3,7 +3,9 @@
 A set of scripts to illustrate mediation models
 
 
- 
+## Context
+
+http://epimed.univ-grenoble-alpes.fr/downloads/dmzfch/presa.pdf
 
 ## How to start? 
 
@@ -48,19 +50,14 @@ Targeted dataset is `datasets/sim_res_2000_1_100_1_500_1_50_1_rep1.txt`
   - What is the impact of the changes on the effects of the various mediation scheme models and on the ADE, as well as on the ACME?
 
 
-### 2nd simulation
 
-Study the datset `datasets/sim_res_2000_-25_100_0_500_1_50_1_rep0.txt`
 
-```
-snakemake -s 02nd_simu.py --cores 16 -rp clean
-snakemake -s 02nd_simu.py --cores 16 -rpn
-```
+### CR noté analyse de médiation
 
-### 3rd simulation
+Le sujet est : en se fondant sur le travail réalisé et en reprenant le cadre formel d'une analyse statistique vu en M1 : 
 
-```
-snakemake -s 03rd_simu.py --cores 16 -rp clean
-snakemake -s 03rd_simu.py --cores 16 -rpn
-cat sim_res_2000_-25_100_0_2000_1_50_1_rep0.txt > datasets/sim_res_3.txt ; cat sim_res_2000_1_100_1_0_1_50_1_rep0.txt >> datasets/sim_res_3.txt
-```
+- analysez le nouveau jeu de données `datasets/sim_res_2000_-25_100_0_500_1_50_1_rep0.txt` ; 
+- concluez, dans cette nouvelle etude, sur l'impact de CTCF sur la transcription médiée par l'organisation 3D du génome ?
+
+Les données sont ici https://github.com/fchuffar/mediation_models/
+
