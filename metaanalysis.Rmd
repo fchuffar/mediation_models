@@ -64,7 +64,7 @@ infos = cbind(infos, infos2)
 # Stats
 
 ```{r echo=FALSE}
-infos$col = as.factor(paste0(infos$gamma1, "_", infos$gamma2))
+infos$col = as.factor(paste0(infos$gamma1, "_", infos$gamma2, "_", infos$i))
 layout(matrix(1:8, 2, byrow=TRUE), respect=TRUE)
 for (Y in c("simuexectime", "fitmedexectime", "effect1", "effect2", "effect3", "acme", "ade", "total_effect", "prop_mediated")) {
   for (X in c("ncell", "gamma1", "gamma2", "i")) {
@@ -77,7 +77,7 @@ for (Y in c("simuexectime", "fitmedexectime", "effect1", "effect2", "effect3", "
 
 
 
-# MEdiation
+# Mediation
 
 ```{r echo=FALSE,  fig.width=9, fig.height=9}
 infos$grp = infos$col
@@ -85,7 +85,7 @@ layout(matrix(1:4, 2, byrow=TRUE), respect=TRUE)
 for (Y in c("acme", "ade", "total_effect", "prop_mediated")) {
   for (X in c("grp")) {
     frm = formula(paste0(Y, "~", X))
-    plot(frm, infos, main=frm, col=1:length(levels(infos$grp)))
+    plot(frm, infos, main=frm, col=1:length(levels(infos$grp)), las=2)
   }
 }  
 ```
