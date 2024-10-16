@@ -1,0 +1,109 @@
+---
+title: "`meth3D`"
+subtitle: "Simulation of mediation scheme"
+author: "Florent Chuffart, Daniel Jost"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", dpi=75)
+```
+
+
+#  Parameters 
+
+```{r}
+simusres_filename = "sim_res_2000_1_100_1_500_1_50_1_rep1.txt"
+infos = list()
+```
+# Data
+
+
+```{r data}
+df = read.table(simusres_filename)               
+CTCF = df[,3]
+c3D = df[,6]
+mRNA = df[,5]
+DNAm = df[,1]
+data = data.frame(CTCF=CTCF, c3D=c3D, mRNA=mRNA, DNAm=DNAm)
+```
+
+# Mediation Analysis
+
+## Step 0: DNA methylation effect on CTCF binding
+
+$$ CTCF \sim DNAm $$
+
+```{r model0}
+fit0 = lm(CTCF ~ DNAm, data=data)
+# fit0 = glm(CTCF ~  DNAm, data=data, family=binomial(logit))
+summary(fit0)
+plot(as.factor(DNAm), as.factor(CTCF), main="CTCF~DNAm", xlab="DNAm", ylab="CTCF")
+infos$effect0 = fit0$coefficients[[2]]
+```
+
+## Step 1: Total effect (CTCF effect on mRNA)
+
+$$mRNA \sim CTCF$$
+
+```{r model1}
+fit = lm(mRNA ~ CTCF, data=data)
+# fit = glm(mRNA ~ CTCF, data=data, family=poisson(link="log"))
+summary(fit)
+plot(as.factor(CTCF), as.factor(mRNA), main="mRNA~CTCF", xlab="CTCF", ylab="mRNA")
+infos$effect1 = fit$coefficients[[2]]
+```
+
+## Step 2: CTCF effect on c3D
+
+$$c3D \sim CTCF$$
+
+```{r model2}
+fita =lm(c3D ~ CTCF, data=data)
+# fita = glm(c3D~CTCF, data=data, family = binomial(logit))
+summary(fita)
+plot(as.factor(CTCF), as.factor(c3D), main="c3D~CTCF", xlab="CTCF", ylab="c3D")
+infos$effect2 = fita$coefficients[[2]]
+```
+
+## Step 3 : c3D effect on mRNA with CTCF as a cofactor
+
+$$mRNA \sim c3D + CTCF$$
+
+```{r model3}
+fitb = lm(mRNA ~ c3D + CTCF, data=data)
+# fitb = glm(mRNA ~ c3D + CTCF, data=data, family=poisson(link="log"))
+summary(fitb)
+plot(as.factor(c3D), as.factor(mRNA), main="mRNA~c3D+CTCF", xlab="c3D", ylab="mRNA")
+infos$effect3 = fitb$coefficients[[2]]
+```
+
+## `mediation` package
+
+```{r mediation}
+library(mediation)
+fitmed = mediate(fita, fitb, treat = "CTCF", mediator = "c3D", boot = TRUE)
+summary(fitmed)
+plot(fitmed)
+fita$coefficients[["CTCF"]] * fitb$coefficients[["c3D"]]
+fitmed$d0
+fitb$coefficients[["CTCF"]]
+fitmed$z0
+
+```
+
+
+
+# Session Information
+
+```{r}
+sessionInfo()
+```

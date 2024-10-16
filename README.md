@@ -40,8 +40,9 @@ snakemake -s 01st_simu.py --cores 16 -rpn
 
 Exercice:
 
-  - Study the nature of the variables X, M and Y
-  - Adapt the `mediation_analysis_lm.Rmd` script and propose a `mediation_analysis_glm.Rmd` script better able to handle this type of data.
+  - Launch `mediation_analysis_tp.Rmd` (`rmarkdown::render("mediation_analysis_tp.Rmd")`)
+  - Study the nature of the variables CTCF, c3D and mRNA
+  - Adapt the `mediation_analysis_tp.Rmd` script and propose a `mediation_analysis_glm.Rmd` script better able to handle this type of data.
   - What is the impact of the changes on the effects of the various mediation scheme models and on the ADE, as well as on the ACME?
 
 ### 2nd simulation

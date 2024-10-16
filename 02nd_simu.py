@@ -6,9 +6,9 @@ prefix = os.getcwd()
 
 # parameter sweeps
 ncells = ["100000"]
-ncells = ["2000"]
+ncells = ["1000"]
 # ncells = ["100"]
-mis    = ["1"]
+mis    = ["-25", "1"]
 sijs   = ["100"] 
 ds     = ["1"]
 fs     = ["50"]
@@ -32,7 +32,7 @@ conda activate demosnakemake_env
 
 RCODE="rmarkdown::render('metaanalysis.Rmd')"
 echo $RCODE | Rscript -
-snakemake --forceall --dag -s 01st_simu.py | dot -Tpdf > dag.pdf
+snakemake --forceall --dag -s 02nd_simu.py | dot -Tpdf > dag.pdf
 smgantt
 echo "done." 
 """

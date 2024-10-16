@@ -18,85 +18,15 @@ knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=6,
 ```
 
 
-# Simulation
-
-<>## Params {-}
+#  Parameters 
 
 ```{r}
 source("params.R")
 print(suffix)
 simusres_filename = paste0("sim_res_", suffix, ".txt")
-simu0res_filename = paste0("sim_res_seed0", "_", paste0(strsplit(suffix, "_")[[1]][-1], collapse="_")
-, ".txt")
 infos = list()
 ```
-
-## Launch simulator  {-}
-
-```{r simu}
-simuexectime_filename = paste0("exectime_", suffix, ".rds")
-if (!file.exists(simusres_filename)) {
-  params_filename = paste0("params_", suffix, ".txt")
-  cat(paste0("ncell=", ncell, "     \n"), file=params_filename)
-  cat(paste0("i = ", i, "           \n"), file=params_filename, append=TRUE)
-  cat(paste0("sij = ", sij, "       \n"), file=params_filename, append=TRUE)
-  cat(paste0("gamma1 = ", gamma1, " \n"), file=params_filename, append=TRUE)
-  cat(paste0("gamma2 = ", gamma2, " \n"), file=params_filename, append=TRUE)
-  cat(paste0("d = ", d, "           \n"), file=params_filename, append=TRUE)
-  cat(paste0("lamb = ", lamb, "     \n"), file=params_filename, append=TRUE)
-  cat(paste0("f = ", f, "           \n"), file=params_filename, append=TRUE)
-  cat(paste0("seed = ", seed, "           \n"), file=params_filename, append=TRUE)
-  cmd = "python"
-  args = paste("simulator.py", params_filename)
-  print(paste(cmd, args))
-  start_time = Sys.time()
-  system2(cmd, args)
-  stop_time = Sys.time()
-  exectime = round(difftime(stop_time, start_time, units="mins"),1)
-  saveRDS(exectime, simuexectime_filename)
-}
-infos$simuexectime = readRDS(simuexectime_filename)
-
-if (!file.exists(simusres_filename)) {stop(paste0("no file ", simusres_filename, " produced."))}
-```
-
-## Simulation execution stastics
-
-  - execution time time
-  - nb event per simulation
-
-# Analysis
-
-```{r 1stsimu, eval=FALSE}
-if (!file.exists(simu0res_filename)) {stop(paste0("no file ", simu0res_filename, " produced."))}
-df = read.table(simu0res_filename)
-head(df)
-dim(df)
-infos$nbeventsimu0=nrow(df)
-
-layout(matrix(1:4,2))
-plot(df[,1], df[,2], main="ma/ca")
-points(df[,1], df[,4], col=2)
-legend("topleft", c("ma", "ca"), col=1:2, pch=1)
-plot(df[,1], df[,3], main="mb/cb")
-points(df[,1], df[,5], col=2)
-legend("topleft", c("mb", "cb"), col=1:2, pch=1)
-
-plot(df[,1], df[,6], main="nrna/pcontact")
-points(df[,1], df[,7], col=2)
-legend("topleft", c("nrna", "pcontact"), col=1:2, pch=1)
-plot(df[,1], df[,6], main="nrna")
-plot(df[,1], df[,7], main="pcontact")
-
-# ma
-# mb
-# ca
-# cb
-# nrna
-# pcontact
-
-```
-
+# Data
 
 ```{r data}
 if (!exists("mread.table")) {mread.table=memoise::memoise(read.table)}
