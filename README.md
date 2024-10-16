@@ -56,7 +56,7 @@ Targeted dataset is `datasets/sim_res_2000_1_100_1_500_1_50_1_rep1.txt`
 
 Le sujet est : en se fondant sur le travail réalisé et en reprenant le cadre formel d'une analyse statistique vu en M1 : 
 
-- analysez le nouveau jeu de données `datasets/sim_res_2000_-25_100_0_500_1_50_1_rep0.txt` ; 
+- analysez le nouveau jeu de données `datasets/sim_res2.txt` ; 
 - concluez, dans cette nouvelle etude, sur l'impact de CTCF sur la transcription médiée par l'organisation 3D du génome ?
 
 Les données sont ici https://github.com/fchuffar/mediation_models/
