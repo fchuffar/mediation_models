@@ -6,7 +6,7 @@ prefix = os.getcwd()
 
 # parameter sweeps
 ncells = ["100000"]
-ncells = ["1000"]
+ncells = ["2000"]
 # ncells = ["100"]
 mis    = ["-25", "1"]
 sijs   = ["100"] 

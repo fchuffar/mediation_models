@@ -40,16 +40,27 @@ snakemake -s 01st_simu.py --cores 16 -rpn
 
 Exercice:
 
+Targeted dataset is `datasets/sim_res_2000_1_100_1_500_1_50_1_rep1.txt`
+
   - Launch `mediation_analysis_tp.Rmd` (`rmarkdown::render("mediation_analysis_tp.Rmd")`)
   - Study the nature of the variables CTCF, c3D and mRNA
   - Adapt the `mediation_analysis_tp.Rmd` script and propose a `mediation_analysis_glm.Rmd` script better able to handle this type of data.
   - What is the impact of the changes on the effects of the various mediation scheme models and on the ADE, as well as on the ACME?
 
+
 ### 2nd simulation
 
+Study the datset `datasets/sim_res_2000_-25_100_0_500_1_50_1_rep0.txt`
 
 ```
 snakemake -s 02nd_simu.py --cores 16 -rp clean
 snakemake -s 02nd_simu.py --cores 16 -rpn
 ```
 
+### 3rd simulation
+
+```
+snakemake -s 03rd_simu.py --cores 16 -rp clean
+snakemake -s 03rd_simu.py --cores 16 -rpn
+cat sim_res_2000_-25_100_0_2000_1_50_1_rep0.txt > datasets/sim_res_3.txt ; cat sim_res_2000_1_100_1_0_1_50_1_rep0.txt >> datasets/sim_res_3.txt
+```

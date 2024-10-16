@@ -21,7 +21,7 @@ knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=12, fig.height=6,
 #  Parameters 
 
 ```{r}
-simusres_filename = "sim_res_2000_1_100_1_500_1_50_1_rep1.txt"
+simusres_filename = "datasets/sim_res_2000_1_100_1_500_1_50_1_rep1.txt"
 infos = list()
 ```
 # Data
