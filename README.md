@@ -40,7 +40,7 @@ snakemake -s 01st_simu.py --cores 16 -rpn
 # snakemake -s 01st_simu.py --jobs 50 --cluster "oarsub --project epimed -l nodes=1/core=1,walltime=00:10:00"  --latency-wait 60 -pn
 ```
 
-### Exercice
+## Exercice
 
 Targeted dataset is `datasets/sim_res_2000_1_100_1_500_1_50_1_rep1.txt`
 
@@ -52,7 +52,7 @@ Targeted dataset is `datasets/sim_res_2000_1_100_1_500_1_50_1_rep1.txt`
 
 
 
-### CR noté analyse de médiation
+## CR noté analyse de médiation
 
 Le sujet est : en se fondant sur le travail réalisé et en reprenant le cadre formel d'une analyse statistique vu en M1 : 
 
