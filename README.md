@@ -47,7 +47,7 @@ Targeted dataset is `datasets/sim_res_2000_1_100_1_500_1_50_1_rep1.txt`
   - Launch `mediation_analysis_tp.Rmd` (`rmarkdown::render("mediation_analysis_tp.Rmd")`)
   - Comment figures, models used, nature of the variables CTCF, c3D and mRNA
 
-Study and comment  the two other datsets `datasets/sim_res_2000_1_100_1_0_1_50_1_rep1.txt` and `datasets/sim_res_2000_1_100_0_500_1_50_1_rep1.txt`
+Study and comment  the two other datsets `datasets/sim_res_2000_1_100_1_0_1_50_1_rep0.txt` and `datasets/sim_res_2000_1_100_0_500_1_50_1_rep0.txt`
 
   - Adapt the `mediation_analysis_tp.Rmd` script and propose a `mediation_analysis_glm.Rmd` script better able to handle this type of data.
   - What is the impact of the changes on the effects of the various mediation scheme models and on the ADE, as well as on the ACME?
